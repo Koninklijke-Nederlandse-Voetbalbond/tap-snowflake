@@ -5,6 +5,10 @@ This includes SnowflakeStream and SnowflakeConnector.
 
 from __future__ import annotations
 
+import base64
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+
 import os
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -80,13 +84,12 @@ class SnowflakeConnector(SQLConnector):
         params = {
             "account": config["account"],
             "user": config["user"],
-            "password": config["password"],
         }
 
-        for option in ["database", "schema", "warehouse", "role"]:
+        for option in ["database", "schema", "warehouse", "role", "password"]:
             if config.get(option):
                 params[option] = config.get(option)
-
+        
         return URL(**params)
 
     def create_engine(self) -> sqlalchemy.engine.Engine:
@@ -95,10 +98,27 @@ class SnowflakeConnector(SQLConnector):
         Returns:
             A SQLAlchemy engine.
         """
+
+        if os.environ.get("TAP_SNOWFLAKE_PRIVATE_KEY"):
+            private_key = serialization.load_pem_private_key(
+                base64.b64decode(os.environ.get("TAP_SNOWFLAKE_PRIVATE_KEY")),
+                password=os.environ.get("TAP_SNOWFLAKE_PRIVATE_KEY_PASSWORD").encode(),
+                backend=default_backend(),
+            )
+
+            decrypted_key = private_key.private_bytes(
+                encoding=serialization.Encoding.DER,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+            connect_args = {"private_key": decrypted_key}
+        else:
+            connect_args = dict()
         return sqlalchemy.create_engine(
             self.sqlalchemy_url,
             echo=False,
             pool_timeout=10,
+            connect_args=connect_args
         )
 
     # overridden to filter out the information_schema from catalog discovery

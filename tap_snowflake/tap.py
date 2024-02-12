@@ -23,7 +23,6 @@ class TapSnowflake(SQLTap):
         th.Property(
             "password",
             th.StringType,
-            required=True,
             description="The password for your Snowflake user.",
         ),
         th.Property(
@@ -51,6 +50,16 @@ class TapSnowflake(SQLTap):
             "role",
             th.StringType,
             description="The initial role for the session.",
+        ),
+        th.Property(
+            "private_key",
+            th.StringType,
+            description="A private key configured for snowflake. Note that either a private key or password must be supplied and a passphrase is required if using a private key",
+        ),
+        th.Property(
+            "private_key_passphrase",
+            th.StringType,
+            description="The decryption passphrase for the private key",
         ),
         th.Property(
             "tables",
