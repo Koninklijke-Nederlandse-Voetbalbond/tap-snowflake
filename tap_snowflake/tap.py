@@ -57,7 +57,7 @@ class TapSnowflake(SQLTap):
             description="A private key configured for snowflake. Note that either a private key or password must be supplied and a passphrase is required if using a private key",
         ),
         th.Property(
-            "private_key_passphrase",
+            "private_key_password",
             th.StringType,
             description="The decryption passphrase for the private key",
         ),

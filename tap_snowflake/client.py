@@ -99,10 +99,10 @@ class SnowflakeConnector(SQLConnector):
             A SQLAlchemy engine.
         """
 
-        if os.environ.get("TAP_SNOWFLAKE_PRIVATE_KEY"):
+        if "private_key" in self.config.keys():
             private_key = serialization.load_pem_private_key(
-                base64.b64decode(os.environ.get("TAP_SNOWFLAKE_PRIVATE_KEY")),
-                password=os.environ.get("TAP_SNOWFLAKE_PRIVATE_KEY_PASSWORD").encode(),
+                base64.b64decode(self.config["private_key"]),
+                password=self.config["private_key_password"].encode(),
                 backend=default_backend(),
             )
 
